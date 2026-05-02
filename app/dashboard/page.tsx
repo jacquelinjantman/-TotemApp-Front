@@ -23,7 +23,7 @@ export default function DashboardPage(){
          window.location.href = '/login'
         return
         }
-        fetch('https://totemapp.onrender.com/events/cmnxiux0700007kuaf30pdfft', {
+        fetch('${process.env.NEXT_PUBLIC_API_URL}', {
             headers: {Authorization: `Bearer ${token}`}
         })
         .then((res) => res.json())
