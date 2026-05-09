@@ -43,11 +43,37 @@ const EVENT_TYPE_COLORS: Record<string, string> = {
 
 const TODAY= new Date()
 
+ function getAge(birthdate: string) {
+    return Math.floor((TODAY.getTime() - new Date(birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))
+  }
+
+  function formatDate(dateStr: string) {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+  }
+
+  function formatTime(dateStr: string) {
+    return new Date(dateStr).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  }
+
+ function getRoleFromToken(token: string): string {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.role ?? ''
+  } catch {
+    return ''
+  }
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedChild, setSelectedChild] = useState<string>('todos')
   const [showInviteCode, setShowInviteCode] = useState(false)
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+  const userRole = storedToken ? getRoleFromToken(storedToken) : ''
+
+
 
   useEffect(() => {
   const token = localStorage.getItem('token')
@@ -56,12 +82,13 @@ export default function DashboardPage() {
     return
   }
 
+ 
+
   fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then((res) => res.json())
     .then((d) => {
-      console.log('dashboard data:', d)
       setData(d)
       setLoading(false)
     })
@@ -74,26 +101,19 @@ export default function DashboardPage() {
 ) 
   if (!data) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <p className="text-gray-400 text-sm">Cargando...</p>
+      <p className="text-gray-400 text-sm">Sin datos</p>
     </div>
   )
+
+  
 
   const filteredEvents = selectedChild === 'todos'
     ? data.events
     : data.events.filter((e) => e.child?.id === selectedChild)
 
-  function getAge(birthdate: string) {
-    return Math.floor((TODAY.getTime() - new Date(birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))
-  }
+   const isParent = userRole === 'mama' || userRole === 'papa'
 
-  function formatDate(dateStr: string) {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
-  }
-
-  function formatTime(dateStr: string) {
-    return new Date(dateStr).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-  }
+ 
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -107,12 +127,14 @@ export default function DashboardPage() {
           <span className="text-sm font-semibold text-gray-900">{data.family.name}</span>
         </div>
         <div className="flex items-center gap-2">
+          {isParent && (
           <button
             onClick={() => setShowInviteCode(!showInviteCode)}
             className="text-xs text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50 transition-colors"
           >
             Invitar
           </button>
+          )}
           <button
             onClick={() => { localStorage.removeItem('token'); window.location.href = '/login' }}
             className="text-xs text-red-500 hover:text-red-700"
