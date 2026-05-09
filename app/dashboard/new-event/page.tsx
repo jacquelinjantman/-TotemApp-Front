@@ -10,6 +10,12 @@ export default function NuevoEventoPage(){
     const [error, setError]= useState('')
     const [success, setSuccess]= useState('')
 
+
+    function getFamilyIdFromToken(token: string): string {
+  const payload = JSON.parse(atob(token.split('.')[1]))
+  return payload.familyId
+}
+
     async function handleSubmit (e: React.FormEvent){
         e.preventDefault()
         setError('')
@@ -32,7 +38,7 @@ export default function NuevoEventoPage(){
                 startAt,
                 location,
                 assignedTo,
-                familyId: 'cmnxiux0700007kuaf30pdfft'
+                familyId: getFamilyIdFromToken(token)
 
             })
         })
