@@ -15,6 +15,8 @@ export default function RegistAccount(){
   const [inviteCode, setInviteCode] = useState('')
   const [roleInvitado, setRoleInvitado] = useState('abuela')
   const [phone, setPhone] = useState('')
+  const [joinFamily, setJoinFamily] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -30,8 +32,10 @@ export default function RegistAccount(){
     }
     const isParent = tipoRegistro === 'family'
     const body = isParent
-    ? { email, password, birthdate,firstName, familyLastName, role}
-    : {email, password, birthdate, phone, role: roleInvitado, inviteCode}
+    ? joinFamily
+    ? { email, password, birthdate, firstName, role, inviteCode: joinCode }
+    : { email, password, birthdate, firstName, familyLastName, role }
+  : { email, password, birthdate, phone, role: roleInvitado, inviteCode }
 
     const res = await fetch (`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
@@ -75,7 +79,7 @@ export default function RegistAccount(){
       <p className="text-xs text-gray-400 mt-1">Debe tener al menos una mayúscula y un número</p>
     </div>
   )
-  
+
     return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 py-10">
       <div className="w-full max-w-sm bg-white rounded-xl shadow p-8">
@@ -112,6 +116,52 @@ export default function RegistAccount(){
                 <option value="papa">Papá</option>
               </select>
             </div>
+            <div className="flex gap-2">
+  <button
+    type="button"
+    onClick={() => setJoinFamily(false)}
+    className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${
+      !joinFamily ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'
+    }`}
+  >
+    Crear familia
+  </button>
+  <button
+    type="button"
+    onClick={() => setJoinFamily(true)}
+    className={`flex-1 text-xs py-2 rounded-lg border transition-colors ${
+      joinFamily ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'
+    }`}
+  >
+    Unirme a una familia
+  </button>
+</div>
+
+{joinFamily && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">Código de invitación</label>
+    <input
+      type="text"
+      value={joinCode}
+      onChange={(e) => setJoinCode(e.target.value)}
+      placeholder="Ej: AB234"
+      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+)}
+
+{!joinFamily && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">Apellido familiar</label>
+    <input
+      type="text"
+      value={familyLastName}
+      onChange={(e) => setFamilyLastName(e.target.value)}
+      placeholder="Apellido"
+      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+)}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>

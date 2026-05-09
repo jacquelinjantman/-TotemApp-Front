@@ -1,92 +1,249 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 
-interface Event{
-    id: string
-    title:string
-    type: string
-    starAt: string
-    location: string |null
-    assignedTo: string | null
-
+interface Child {
+  id: string
+  name: string
+  birthdate: string
 }
 
-export default function DashboardPage(){
-  
-    const [events, setEvents] = useState<Event[]>([])
-    
+interface Event {
+  id: string
+  title: string
+  type: string
+  startAt: string
+  location: string | null
+  assignedTo: string | null
+  child: Child | null
+}
 
-    useEffect(() =>{
-         const token = localStorage.getItem ('token')
-        if (!token){
-         window.location.href = '/login'
-        return
-        }
-        fetch('${process.env.NEXT_PUBLIC_API_URL}', {
-            headers: {Authorization: `Bearer ${token}`}
-        })
-        .then((res) => res.json())
-        .then ((data) => {
-            if (Array.isArray(data)){
-                setEvents(data)
-            }
-        })
+interface DashboardData {
+  family: {
+    id: string
+    name: string
+    inviteCode: string
+  }
+  children: Child[]
+  members: { id: string; firstName: string; role: string }[]
+  events: Event[]
+  stats: {
+    totalEvents: number
+    unassigned: number
+  }
+}
 
-    }, [])
-   
+const EVENT_TYPE_COLORS: Record<string, string> = {
+  medical:  'bg-red-500',
+  school:   'bg-green-500',
+  birthday: 'bg-blue-500',
+  activity: 'bg-amber-500',
+  other:    'bg-gray-400',
+}
 
-    return(
-        <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Centro de mando familiar</h1>
-        <button
-        onClick={()=>{
-            localStorage.removeItem('token')
-            window.location.href ='/login'
-        }}
-        className="text-sm text-red-500 hover:text-red-700 transition-colors"
-        >
-            Cerrar sesion
-        </button>
+const TODAY= new Date()
 
-        <div className= "bg-white rounded-x1 shadow pp-6">
-            <h2 className="text-lg font-medium text-gray-800 mb-4">Proximos eventos</h2>
-            <div className="flex gap-3">
+export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedChild, setSelectedChild] = useState<string>('todos')
+  const [showInviteCode, setShowInviteCode] = useState(false)
 
-          <a  href="/dashboard/new-event"
-            className="text-sm text-blue-600 hover:underline">
-                + New </a>
+  useEffect(() => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    window.location.href = '/login'
+    return
+  }
 
-                <button
-                onClick={()=> window.location.reload()}
-                className='="text-sm text-gray-400 hover:text-gray-600'>
-                    Actualizar
-                </button>
-            </div>
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then((res) => res.json())
+    .then((d) => {
+      console.log('dashboard data:', d)
+      setData(d)
+      setLoading(false)
+    })
+}, [])
 
-{events.length ===0?(
-    <p className= "text-gray-400 text-sm"> sin eventos</p>
-) : (
-    <div className= "flex flex-col gap-3">
-        {events.map((event) => (
-            <div key= {event.id} className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg">
-                <div className="flex-1">
-                    <p className=" text-sm font-medium text-gray-900"> {event.title}</p>
-        <p className= "text-xs text-gray-400 mt-0.5">
-            {event.type}
-            {event.location && '. ${event.location}'}
-            {event.assignedTo && ` · ${event.assignedTo}`}
+ if (loading) return (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <p className="text-gray-400 text-sm">Cargando...</p>
+  </div>
+) 
+  if (!data) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-gray-400 text-sm">Cargando...</p>
+    </div>
+  )
 
-        </p>
+  const filteredEvents = selectedChild === 'todos'
+    ? data.events
+    : data.events.filter((e) => e.child?.id === selectedChild)
+
+  function getAge(birthdate: string) {
+    return Math.floor((TODAY.getTime() - new Date(birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))
+  }
+
+  function formatDate(dateStr: string) {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+  }
+
+  function formatTime(dateStr: string) {
+    return new Date(dateStr).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+
+      {/* Navbar */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-xs">🏠</span>
+          </div>
+          <span className="text-sm font-semibold text-gray-900">{data.family.name}</span>
         </div>
-        </div>
-        ))}
-        </div>
-
-)}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowInviteCode(!showInviteCode)}
+            className="text-xs text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50 transition-colors"
+          >
+            Invitar
+          </button>
+          <button
+            onClick={() => { localStorage.removeItem('token'); window.location.href = '/login' }}
+            className="text-xs text-red-500 hover:text-red-700"
+          >
+            Salir
+          </button>
         </div>
       </div>
-    </main>
-    )
+
+      {/* Código de invitación */}
+      {showInviteCode && (
+        <div className="bg-blue-50 border-b border-blue-100 px-4 py-3">
+          <p className="text-xs text-blue-700 mb-1">Compartí este código para invitar a tu familia:</p>
+          <div className="flex items-center gap-2">
+            <code className="text-sm font-mono font-bold text-blue-900 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
+              {data.family.inviteCode}
+            </code>
+            <button
+              onClick={() => navigator.clipboard.writeText(data.family.inviteCode)}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Copiar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
+
+        {/* Selector de hijos */}
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedChild('todos')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              selectedChild === 'todos'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-600 border-gray-200'
+            }`}
+          >
+            ★ Todos
+          </button>
+          {data.children.map((child) => (
+            <button
+              key={child.id}
+              onClick={() => setSelectedChild(child.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                selectedChild === child.id
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-600 border-gray-200'
+              }`}
+            >
+              {child.name}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                selectedChild === child.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+              }`}>
+                {getAge(child.birthdate)} años
+              </span>
+            </button>
+          ))}
+          
+           <a href="/dashboard/nuevo-hijo"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-gray-400 border border-dashed border-gray-200 hover:border-gray-400 transition-colors"
+        >
+            + Agregar hijo
+          </a>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-white rounded-xl p-3 border border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">Eventos próximos</p>
+            <p className="text-2xl font-semibold text-gray-900">{data.stats.totalEvents}</p>
+            <p className="text-[11px] text-gray-400">en 14 días</p>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">Sin asignar</p>
+            <p className={`text-2xl font-semibold ${data.stats.unassigned > 0 ? 'text-red-500' : 'text-green-500'}`}>
+              {data.stats.unassigned}
+            </p>
+            <p className="text-[11px] text-gray-400">requieren responsable</p>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">Hijos</p>
+            <p className="text-2xl font-semibold text-gray-900">{data.children.length}</p>
+            <p className="text-[11px] text-gray-400">registrados</p>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">Miembros</p>
+            <p className="text-2xl font-semibold text-gray-900">{data.members.length}</p>
+            <p className="text-[11px] text-gray-400">en la familia</p>
+          </div>
+        </div>
+
+        {/* Próximos eventos */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-gray-900">Próximos eventos</h2>
+            <a href="/dashboard/new-event" className="text-xs text-blue-600 hover:underline">+ Nuevo</a>
+          </div>
+
+          {filteredEvents.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6">Sin eventos próximos</p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {filteredEvents.map((event) => (
+                <div key={event.id} className="flex items-start gap-3 py-3">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${EVENT_TYPE_COLORS[event.type] ?? 'bg-gray-400'}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formatDate(event.startAt)} · {formatTime(event.startAt)}
+                      {event.child && ` · ${event.child.name}`}
+                      {event.location && ` · ${event.location}`}
+                    </p>
+                  </div>
+                  {event.assignedTo ? (
+                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full shrink-0">
+                      {event.assignedTo}
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full shrink-0">
+                      Sin asignar
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  )
 }
