@@ -74,6 +74,17 @@ function getFirstNameFromToken(token: string):string{
   }
 }
 
+function getCountdown(dateStr: string, from:Date){
+  const diff = new Date(dateStr).getTime() - from.getTime()
+  if(diff <=0) return 'Ya paso'
+  const days = Math.floor(diff/ (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+   if (days > 0) return `${days}d ${hours}h ${minutes}m`
+   if (hours > 0) return  `${hours}h ${minutes}m`
+   return `${minutes}m`
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -81,8 +92,10 @@ export default function DashboardPage() {
   const [showInviteCode, setShowInviteCode] = useState(false)
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const userRole = storedToken ? getRoleFromToken(storedToken) : ''
+  const isParent = userRole === 'mama' || userRole === 'papa'
   const userName = storedToken ? getFirstNameFromToken(storedToken) : 'Yo'
- const [toast, setToast] = useState<string>('')
+  const [toast, setToast] = useState<string>('')
+  const [now, setNow] = useState(new Date())
 
   useEffect(() => {
   const token = localStorage.getItem('token')
@@ -91,9 +104,7 @@ export default function DashboardPage() {
     return
   }
 
- 
-
-  fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then((res) => res.json())
@@ -103,26 +114,15 @@ export default function DashboardPage() {
     })
 }, [])
 
- if (loading) return (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <p className="text-gray-400 text-sm">Cargando...</p>
-  </div>
-) 
-  if (!data) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <p className="text-gray-400 text-sm">Sin datos</p>
-    </div>
-  )
-
+  useEffect(() => {
+  const interval = setInterval(() => {
+    setNow(new Date())
+  }, 60000)
+  return () => clearInterval(interval)
+}, [])
+ 
   
-
-  const filteredEvents = selectedChild === 'todos'
-    ? data.events
-    : data.events.filter((e) => e.child?.id === selectedChild)
-
-   const isParent = userRole === 'mama' || userRole === 'papa'
-
-   async function handleAssign(eventId: string, name: string) {
+ async function handleAssign(eventId: string, name: string) {
   const token = localStorage.getItem('token')
   if (!token) return
 
@@ -135,7 +135,7 @@ export default function DashboardPage() {
     body: JSON.stringify({ assignedTo: name })
   })
 
-  if (res.ok) {
+   if (res.ok) {
     setData((prev) => {
       if (!prev) return prev
       return {
@@ -150,10 +150,27 @@ export default function DashboardPage() {
   }
 }
 
+ if (loading) return (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <p className="text-gray-400 text-sm">Cargando...</p>
+  </div>
+) 
+  if (!data) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-gray-400 text-sm">Sin datos</p>
+    </div>
+  )
 
+  const filteredEvents = selectedChild === 'todos'
+    ? data.events
+    : data.events.filter((e) => e.child?.id === selectedChild)
 
+  
+const myEvents = data.events.filter((e) => e.assignedTo === userName)
+  
   return (
     <div className="min-h-screen bg-gray-50">
+
 {toast && (
   <div className="fixed top-4 right-4 z-50 bg-green-600 text-white text-sm px-4 py-3 rounded-xl shadow-lg animate-bounce">
     {toast}
@@ -235,12 +252,14 @@ export default function DashboardPage() {
               </span>
             </button>
           ))}
-          
+           {isParent && (
+
            <a href="/dashboard/nuevo-hijo"
             className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-gray-400 border border-dashed border-gray-200 hover:border-gray-400 transition-colors"
         >
             + Agregar hijo
           </a>
+           )}
         </div>
 
         {/* Stats */}
@@ -315,6 +334,29 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Mis eventos asignados */}
+{myEvents.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <h2 className="text-sm font-semibold text-gray-900 mb-3">⏰ Mis eventos</h2>
+            <div className="flex flex-col gap-3">
+              {myEvents.map((event) => (
+                <div key={event.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{event.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{formatDate(event.startAt)} · {formatTime(event.startAt)}</p>
+                    <p className="text-xs text-blue-500 mt-0.5">¡No te olvides de tu evento asignado!</p>
+                  </div>
+                  <div className="text-right shrink-0 ml-3">
+                    <p className="text-xs text-gray-400 mb-0.5">Faltan</p>
+                    <p className="text-sm font-bold text-blue-700">{getCountdown(event.startAt, now)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
 
       </div>
     </div>
