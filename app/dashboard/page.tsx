@@ -82,7 +82,7 @@ export default function DashboardPage() {
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const userRole = storedToken ? getRoleFromToken(storedToken) : ''
   const userName = storedToken ? getFirstNameFromToken(storedToken) : 'Yo'
-
+ const [toast, setToast] = useState<string>('')
 
   useEffect(() => {
   const token = localStorage.getItem('token')
@@ -122,32 +122,43 @@ export default function DashboardPage() {
 
    const isParent = userRole === 'mama' || userRole === 'papa'
 
-   async function handleAssign(eventId: string, name:string){
-    const token = localStorage.getItem('token')
-    if(!token) return
+   async function handleAssign(eventId: string, name: string) {
+  const token = localStorage.getItem('token')
+  if (!token) return
 
-    const res = await fetch (`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-type':'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ assignedTo: name })
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ assignedTo: name })
+  })
+
+  if (res.ok) {
+    setData((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        events: prev.events.map((e) =>
+          e.id === eventId ? { ...e, assignedTo: name } : e
+        )
+      }
     })
-
-    if (!res.ok) {
-     alert('Error al asignar evento')
-     window.location.reload()
-    }
-
-    // Refrescar los datos del dashboard
-    const updatedData = await res.json()
-    setData(updatedData)
+    setToast('¡Te asignaste al evento!')
+    setTimeout(() => setToast(''), 3000)
   }
+}
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-
+{toast && (
+  <div className="fixed top-4 right-4 z-50 bg-green-600 text-white text-sm px-4 py-3 rounded-xl shadow-lg animate-bounce">
+    {toast}
+  </div>
+)}
       {/* Navbar */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
