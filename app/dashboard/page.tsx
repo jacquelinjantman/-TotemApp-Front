@@ -65,6 +65,15 @@ const TODAY= new Date()
   }
 }
 
+function getFirstNameFromToken(token: string):string{
+  try{
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.firstName ?? 'Yo'
+  } catch {
+    return 'Yo'
+  }
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -72,7 +81,7 @@ export default function DashboardPage() {
   const [showInviteCode, setShowInviteCode] = useState(false)
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const userRole = storedToken ? getRoleFromToken(storedToken) : ''
-
+  const userName = storedToken ? getFirstNameFromToken(storedToken) : 'Yo'
 
 
   useEffect(() => {
@@ -113,7 +122,28 @@ export default function DashboardPage() {
 
    const isParent = userRole === 'mama' || userRole === 'papa'
 
- 
+   async function handleAssign(eventId: string, name:string){
+    const token = localStorage.getItem('token')
+    if(!token) return
+
+    const res = await fetch (`${process.env.NEXT_PUBLIC_API_URL}/events/${eventId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-type':'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ assignedTo: name })
+    })
+
+    if (!res.ok) {
+     alert('Error al asignar evento')
+     window.location.reload()
+    }
+
+    // Refrescar los datos del dashboard
+    const updatedData = await res.json()
+    setData(updatedData)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -232,8 +262,10 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-900">Próximos eventos</h2>
+            {isParent &&(
             <a href="/dashboard/new-event" className="text-xs text-blue-600 hover:underline">+ Nuevo</a>
-          </div>
+            )}
+            </div>
 
           {filteredEvents.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-6">Sin eventos próximos</p>
@@ -250,15 +282,23 @@ export default function DashboardPage() {
                       {event.location && ` · ${event.location}`}
                     </p>
                   </div>
-                  {event.assignedTo ? (
-                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full shrink-0">
-                      {event.assignedTo}
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full shrink-0">
-                      Sin asignar
-                    </span>
-                  )}
+                 <div className="flex flex-col items-end gap-1 shrink-0">
+  {event.assignedTo ? (
+    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+      {event.assignedTo}
+    </span>
+  ) : (
+    <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
+      Sin asignar
+    </span>
+  )}
+  <button
+    onClick={() => handleAssign(event.id, userName)}
+    className="text-[10px] text-gray-400 hover:text-blue-600 transition-colors"
+  >
+    {event.assignedTo === userName ? '✓ Asignado' : 'Asignarme'}
+  </button>
+</div>
                 </div>
               ))}
             </div>
