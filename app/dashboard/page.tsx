@@ -276,7 +276,7 @@ const myEvents = data.events.filter((e) => e.assignedTo === userName)
           ))}
            {isParent && (
 
-           <a href="/dashboard/nuevo-hijo"
+           <a href="/dashboard/new-children"
             className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-gray-400 border border-dashed border-gray-200 hover:border-gray-400 transition-colors"
         >
             + Agregar hijo
