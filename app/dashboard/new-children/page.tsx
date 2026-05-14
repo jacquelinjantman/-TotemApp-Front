@@ -35,7 +35,7 @@ export default function NuevoHijoPage() {
       return
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/new-children`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/children`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
