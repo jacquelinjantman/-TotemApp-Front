@@ -254,7 +254,7 @@ export default function DashboardPage() {
               )}
 
               <a
-                href="/dashboard/perfil"
+                href="/dashboard/profile"
                 className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors block"
               >
                 ✏️ Editar perfil
