@@ -96,6 +96,7 @@ export default function DashboardPage() {
   const userName = storedToken ? getFirstNameFromToken(storedToken) : 'Yo'
   const [toast, setToast] = useState<string>('')
   const [now, setNow] = useState(new Date())
+const[showMenu, setShowMenu]= useState(false)
 
   useEffect(() => {
   const token = localStorage.getItem('token')
@@ -184,21 +185,42 @@ const myEvents = data.events.filter((e) => e.assignedTo === userName)
           </div>
           <span className="text-sm font-semibold text-gray-900">{data.family.name}</span>
         </div>
-        <div className="flex items-center gap-2">
-          {isParent && (
+
+        <div className="relative">
           <button
-            onClick={() => setShowInviteCode(!showInviteCode)}
-            className="text-xs text-blue-600 border border-blue-200 rounded-lg px-3 py-1.5 hover:bg-blue-50 transition-colors"
+          onClick={()=>setShowMenu (!showMenu)}
+          className="flex flex-col gap-1 p-2 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            Invitar
+            <span className="w-5 h-0.5 bg-gray-600 block" />
+            <span className="w-5 h-0.5 bg-gray-600 block" />
+            <span className="w-5 h-0.5 bg-gray-600 block" />
           </button>
+
+          {showMenu && (
+            <div className="absolute right-0 top-10 bg-white border border-gray-100 rounded-xl shadow-lg p-2 w-48 z-40">
+               {isParent && (
+                <button
+                  onClick={() => { setShowInviteCode(!showInviteCode); setShowMenu(false) }}
+                  className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
+                >
+                    👥 Invitar familiar
+                </button>
           )}
-          <button
-            onClick={() => { localStorage.removeItem('token'); window.location.href = '/login' }}
-            className="text-xs text-red-500 hover:text-red-700"
+
+         <a href="/dashboard/perfil"
+          className="w-full text-left text-sm text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors block"
           >
-            Salir
-          </button>
+          ✏️ Editar perfil
+              </a>
+       <button
+                onClick={() => { localStorage.removeItem('token'); window.location.href = '/login' }}
+                className="w-full text-left text-sm text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
+              >
+                🚪 Cerrar sesión
+              </button>
+         </div>
+        )}
+          
         </div>
       </div>
 
