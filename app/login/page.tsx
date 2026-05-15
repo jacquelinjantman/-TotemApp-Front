@@ -1,51 +1,57 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).+$/
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).+$/;
 
-    if(!passwordRegex.test(password)) {
-        setError('La contraseña debe contener al menos una letra mayúscula y un número')
-        return
+    if (!passwordRegex.test(password)) {
+      setError(
+        "La contraseña debe contener al menos una letra mayúscula y un número",
+      );
+      return;
     }
 
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    const data = await res.json()
+    const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || 'Error al iniciar sesión')
-      return
+      setError(data.error || "Error al iniciar sesión");
+      return;
     }
 
-    localStorage.setItem('token', data.token)
-    window.location.href = '/dashboard'
+    localStorage.setItem("token", data.token);
+    window.location.href = "/dashboard";
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50">
+    <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-xl shadow p-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Iniciar sesión</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          Iniciar sesión
+        </h1>
         <p className="text-sm text-gray-500 mb-6">Bienvenida de vuelta</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
             <input
               type="email"
               value={email}
@@ -56,10 +62,12 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -85,13 +93,13 @@ export default function LoginPage() {
           </button>
 
           <p className="text-center text-sm text-gray-500">
-            ¿No tenés cuenta?{' '}
-            <a href="/register" className="text-blue-600 hover:underline">Registrate</a>
+            ¿No tenés cuenta?{" "}
+            <a href="/register" className="text-blue-600 hover:underline">
+              Registrate
+            </a>
           </p>
         </form>
       </div>
     </main>
-  )
+  );
 }
-
-              

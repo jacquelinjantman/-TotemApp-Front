@@ -81,7 +81,7 @@ export default function RegistAccount(){
   )
 
     return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 py-10">
+    <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm bg-white rounded-xl shadow p-8">
         <h1 className="text-2xl font-semibold text-gray-900 mb-2">Crear Cuenta</h1>
         <p className="text-sm text-gray-500 mb-6">¿Cómo vas a usar la app?</p>

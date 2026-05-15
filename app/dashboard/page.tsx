@@ -212,7 +212,7 @@ export default function DashboardPage() {
   const myEvents = data.events.filter((e) => e.assignedTo === userName);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen px-4">
       {toast && (
         <div className="fixed top-4 right-4 z-50 bg-green-600 text-white text-sm px-4 py-3 rounded-xl shadow-lg animate-bounce">
           {toast}

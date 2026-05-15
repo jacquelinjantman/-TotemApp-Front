@@ -58,7 +58,7 @@ export default function NuevoEventoPage(){
 
         }
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gray-50">
+            <main className="flex min-h-screen items-center justify-center px-4">
             <div className=" w-full max-w-sm bg-white rounded-xl shadow p-8">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className=" text-2x1 font-semibold text-gray-900">Nuevo Evento</h1>
