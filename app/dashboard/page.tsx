@@ -302,7 +302,7 @@ export default function DashboardPage() {
             onClick={() => setSelectedChild("todos")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
               selectedChild === "todos"
-                ? "bg-blue-600 text-white border-blue-600"
+                ? "bg-blue-600 text-black border-blue-600"
                 : " border-white hover:bg-white/20"
             }`}
           >
@@ -314,8 +314,8 @@ export default function DashboardPage() {
               onClick={() => setSelectedChild(child.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                 selectedChild === child.id
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-600 border-gray-200"
+                  ? "bg-blue-600 text-black border-blue-600"
+                  : " border-white hover:bg-white/20"
               }`}
             >
               {child.name}
