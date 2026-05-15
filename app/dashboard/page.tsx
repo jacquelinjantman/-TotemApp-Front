@@ -219,7 +219,7 @@ export default function DashboardPage() {
         </div>
       )}
       {/* Navbar */}
-      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-3  flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white text-xs">🏠</span>
@@ -234,9 +234,9 @@ export default function DashboardPage() {
             onClick={() => setShowMenu(!showMenu)}
             className="flex flex-col gap-1 p-2 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <span className="w-5 h-0.5 bg-gray-600 block" />
-            <span className="w-5 h-0.5 bg-gray-600 block" />
-            <span className="w-5 h-0.5 bg-gray-600 block" />
+            <span className="w-5 h-0.5 bg-white block" />
+            <span className="w-5 h-0.5 bg-white block" />
+            <span className="w-5 h-0.5 bg-white block" />
           </button>
 
           {showMenu && (
@@ -303,7 +303,7 @@ export default function DashboardPage() {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
               selectedChild === "todos"
                 ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-600 border-gray-200"
+                : " border-white hover:bg-white/20"
             }`}
           >
             ★ Todos
